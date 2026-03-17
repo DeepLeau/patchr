@@ -148,10 +148,10 @@ const TimelineFeature = ({
 );
 
 const TypingFeature = ({ code }: { code: string }) => {
-  const [displayed, setDisplayed] = useState("");
-  const [i, setI] = useState(0);
+  const [displayed, setDisplayed] = React.useState("");
+  const [i, setI] = React.useState(0);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (i >= code.length) return;
     const id = setTimeout(() => {
       setDisplayed((p) => p + code[i]);

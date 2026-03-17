@@ -43,7 +43,7 @@ export function Navbar() {
             <a
               key={item.label}
               href={item.href}
-              className="px-3 h-8 flex items-center text-sm text-zinc-500 hover:text-zinc-200 rounded-md hover:bg-white/[0.04] transition-colors duration-150"
+              className="px-3 h-8 flex items-center text-sm text-white-500 hover:text-white-200 rounded-md hover:bg-white/[0.04] transition-colors duration-150"
             >
               {item.label}
             </a>
@@ -52,7 +52,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <a
             href="#"
-            className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors px-3"
+            className="text-sm text-white-400 hover:text-white-200 transition-colors px-3"
           >
             Log in
           </a>

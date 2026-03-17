@@ -28,7 +28,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-xs text-zinc-400"
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-white/[0.04] text-xs text-white-400"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
           Now available
@@ -51,7 +51,7 @@ export function Hero() {
             How it works →
           </button>
         </div>
-        <p className="text-xs text-zinc-600">
+        <p className="text-xs text-white-600">
           Trusted by 2,400+ developers · No credit card required
         </p>
       </div>
