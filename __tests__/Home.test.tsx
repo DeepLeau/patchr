@@ -66,7 +66,7 @@ describe("Home Page", () => {
     render(<Home />);
 
     // Assert
-    expect(screen.getByText("Patchr")).toBeInTheDocument();
+    expect(screen.getAllByText("Patchr")).toHaveLength(2);
     expect(screen.getByTestId("animated-text")).toBeInTheDocument();
     expect(screen.getByText(/trusted by developers at/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /built different/i })).toBeInTheDocument();
