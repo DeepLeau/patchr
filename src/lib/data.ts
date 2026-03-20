@@ -110,22 +110,24 @@ export const dependenciesBarData = [
 ];
 
 // Données pour le graphique donut (répartition severity)
+// Palette moderne cybersécurité : rubis, ambre brûlé, ambre clair, émeraude pâle
 export const severityPieData = [
-  { name: "Critical", value: 8, color: "#ef4444" },
-  { name: "High", value: 15, color: "#f97316" },
-  { name: "Medium", value: 24, color: "#eab308" },
-  { name: "Low", value: 18, color: "#22c55e" },
+  { name: "Critical", value: 8, color: "#dc2626" },   // rubis saturé
+  { name: "High", value: 15, color: "#ea580c" },         // ambre brûlé
+  { name: "Medium", value: 24, color: "#d97706" },      // ambre clair
+  { name: "Low", value: 18, color: "#059669" },          // émeraude
 ];
 
 // Données pour le graphique ligne (temps moyen de résolution en jours)
+// Target = 3.5 jours, données avec variance réaliste au-dessus et en-dessous
 export const resolutionTimeData = [
-  { week: "W1", avgDays: 4.2 },
-  { week: "W2", avgDays: 3.8 },
-  { week: "W3", avgDays: 3.5 },
-  { week: "W4", avgDays: 3.1 },
-  { week: "W5", avgDays: 2.9 },
-  { week: "W6", avgDays: 2.6 },
-  { week: "W7", avgDays: 2.4 },
+  { week: "W1", avgDays: 4.2 },  // au-dessus de la target
+  { week: "W2", avgDays: 3.9 },  // au-dessus
+  { week: "W3", avgDays: 3.7 },  // au-dessus
+  { week: "W4", avgDays: 3.4 },  // en-dessous - première amélioration
+  { week: "W5", avgDays: 3.2 },  // en-dessous
+  { week: "W6", avgDays: 2.9 },  // en-dessous
+  { week: "W7", avgDays: 2.4 },  // bien en-dessous - grande amélioration
 ];
 
 // Dépôts mockés

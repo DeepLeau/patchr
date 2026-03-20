@@ -86,14 +86,34 @@ export function AreaChartCard({
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
           >
             <defs>
+              {/* Gradient vulnérabilités - cyber red avec glow */}
               <linearGradient id="colorVulns" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                <stop offset="0%" stopColor="#dc2626" stopOpacity={0.5} />
+                <stop offset="50%" stopColor="#991b1b" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="#450a0a" stopOpacity={0} />
               </linearGradient>
+              {/* Glow effect vulnérabilités */}
+              <filter id="glowVulns" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              {/* Gradient résolu - cyber green avec glow */}
               <linearGradient id="colorResolved" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#4ade80" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#4ade80" stopOpacity={0} />
+                <stop offset="0%" stopColor="#10b981" stopOpacity={0.5} />
+                <stop offset="50%" stopColor="#059669" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="#064e3b" stopOpacity={0} />
               </linearGradient>
+              {/* Glow effect résolu */}
+              <filter id="glowResolved" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
@@ -124,23 +144,49 @@ export function AreaChartCard({
               animate={{ opacity: 1 }}
               transition={{ duration: 1 }}
             >
+              {/* Vulnerabilities curve with dots and glow */}
               <Area
                 type="monotone"
                 dataKey="vulnerabilities"
-                stroke="#ef4444"
-                strokeWidth={2}
+                stroke="#dc2626"
+                strokeWidth={2.5}
                 fillOpacity={1}
                 fill="url(#colorVulns)"
+                dot={{
+                  fill: "#1a1a1a",
+                  stroke: "#dc2626",
+                  strokeWidth: 2,
+                  r: 4,
+                }}
+                activeDot={{
+                  fill: "#dc2626",
+                  stroke: "#1a1a1a",
+                  strokeWidth: 2,
+                  r: 6,
+                }}
                 animationDuration={1500}
                 animationEasing="ease-out"
               />
+              {/* Resolved curve with dots and glow */}
               <Area
                 type="monotone"
                 dataKey="resolved"
-                stroke="#4ade80"
-                strokeWidth={2}
+                stroke="#10b981"
+                strokeWidth={2.5}
                 fillOpacity={1}
                 fill="url(#colorResolved)"
+                dot={{
+                  fill: "#1a1a1a",
+                  stroke: "#10b981",
+                  strokeWidth: 2,
+                  r: 4,
+                }}
+                activeDot={{
+                  fill: "#10b981",
+                  stroke: "#1a1a1a",
+                  strokeWidth: 2,
+                  r: 6,
+                }}
                 animationDuration={1500}
                 animationEasing="ease-out"
               />
