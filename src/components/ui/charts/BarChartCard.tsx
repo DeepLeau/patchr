@@ -48,9 +48,22 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   return null;
 };
 
-const getBarColor = (count: number, critical: number) => {
-  if (critical > 0) return "#ef4444";
-  return "#4ade80";
+// Palette cyan → violet progressif pour look cybersécurité premium
+const CYBER_COLORS = [
+  "#06b6d4", // cyan-500
+  "#0891b2", // cyan-600
+  "#0e7490", // cyan-700
+  "#6366f1", // indigo-500
+  "#7c3aed", // violet-600
+  "#8b5cf6", // violet-500
+];
+
+const getBarGradient = (index: number, critical: number) => {
+  if (critical > 0) {
+    return "url(#criticalGradient)";
+  }
+  const colorIndex = index % CYBER_COLORS.length;
+  return CYBER_COLORS[colorIndex];
 };
 
 export function BarChartCard({ title, data, loading = false }: BarChartCardProps) {
@@ -92,6 +105,38 @@ export function BarChartCard({ title, data, loading = false }: BarChartCardProps
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             barCategoryGap="30%"
           >
+            <defs>
+              {/* Gradient critique - rouge glow */}
+              <linearGradient id="criticalGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ef4444" stopOpacity={1} />
+                <stop offset="100%" stopColor="#991b1b" stopOpacity={0.8} />
+              </linearGradient>
+              {/* Gradients cyan → violet pour chaque barre */}
+              <linearGradient id="barGrad0" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#06b6d4" stopOpacity={1} />
+                <stop offset="100%" stopColor="#0891b2" stopOpacity={0.6} />
+              </linearGradient>
+              <linearGradient id="barGrad1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0891b2" stopOpacity={1} />
+                <stop offset="100%" stopColor="#0e7490" stopOpacity={0.6} />
+              </linearGradient>
+              <linearGradient id="barGrad2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0e7490" stopOpacity={1} />
+                <stop offset="100%" stopColor="#6366f1" stopOpacity={0.6} />
+              </linearGradient>
+              <linearGradient id="barGrad3" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
+                <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.6} />
+              </linearGradient>
+              <linearGradient id="barGrad4" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#7c3aed" stopOpacity={1} />
+                <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.6} />
+              </linearGradient>
+              <linearGradient id="barGrad5" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#8b5cf6" stopOpacity={1} />
+                <stop offset="100%" stopColor="#a855f7" stopOpacity={0.6} />
+              </linearGradient>
+            </defs>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke="rgba(255,255,255,0.05)"
@@ -117,18 +162,10 @@ export function BarChartCard({ title, data, loading = false }: BarChartCardProps
               animationEasing="ease-out"
             >
               {data.map((entry, index) => (
-                <motion.div
+                <Cell
                   key={`cell-${index}`}
-                  initial={{ scaleY: 0 }}
-                  animate={{ scaleY: 1 }}
-                  transition={{
-                    duration: 0.6,
-                    ease: "easeOut",
-                    delay: index * 0.1,
-                  }}
-                >
-                  <Cell fill={getBarColor(entry.count, entry.critical)} />
-                </motion.div>
+                  fill={entry.critical > 0 ? "url(#criticalGradient)" : `url(#barGrad${index % 6})`}
+                />
               ))}
             </Bar>
           </BarChart>
@@ -138,11 +175,11 @@ export function BarChartCard({ title, data, loading = false }: BarChartCardProps
       {/* Legend */}
       <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/[0.05]">
         <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-          <div className="w-2 h-2 rounded-full bg-accent-hi" />
+          <div className="w-2 h-2 rounded-full bg-gradient-to-b from-cyan-500 to-cyan-700" />
           Safe
         </div>
         <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-          <div className="w-2 h-2 rounded-full bg-red-400" />
+          <div className="w-2 h-2 rounded-full bg-gradient-to-b from-red-500 to-red-800" />
           Has critical
         </div>
       </div>

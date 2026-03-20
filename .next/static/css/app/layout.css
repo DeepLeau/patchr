@@ -1447,6 +1447,9 @@ video {
 .bg-\[radial-gradient\(ellipse_80\%_50\%_at_50\%_-10\%\2c rgba\(22\2c 163\2c 74\2c 0\.08\)\2c transparent\)\] {
   background-image: radial-gradient(ellipse 80% 50% at 50% -10%,rgba(22,163,74,0.08),transparent);
 }
+.bg-gradient-to-b {
+  background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
+}
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
@@ -1479,8 +1482,24 @@ video {
   --tw-gradient-to: rgb(22 163 74 / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
+.from-cyan-500 {
+  --tw-gradient-from: #06b6d4 var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(6 182 212 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+.from-red-500 {
+  --tw-gradient-from: #ef4444 var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(239 68 68 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
 .to-accent-hi {
   --tw-gradient-to: #4ade80 var(--tw-gradient-to-position);
+}
+.to-cyan-700 {
+  --tw-gradient-to: #0e7490 var(--tw-gradient-to-position);
+}
+.to-red-800 {
+  --tw-gradient-to: #991b1b var(--tw-gradient-to-position);
 }
 .to-transparent {
   --tw-gradient-to: transparent var(--tw-gradient-to-position);

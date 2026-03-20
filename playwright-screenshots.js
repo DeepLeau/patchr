@@ -1,215 +1,114 @@
-const { chromium } = require('@playwright/test');
-const path = require('path');
+const { chromium, expect } = require('@playwright/test');
 
-async function captureScreenshots() {
+(async () => {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 }
   });
   const page = await context.newPage();
 
-  // Enable console logging for debugging
-  page.on('console', msg => {
-    if (msg.type() === 'error') {
-      console.log(`Console error: ${msg.text()}`);
-    }
-  });
+  const screenshots = [];
 
-  // Create screenshots directory if not exists
-  const fs = require('fs');
-  const screenshotsDir = path.join(process.cwd(), 'screenshots');
-  if (!fs.existsSync(screenshotsDir)) {
-    fs.mkdirSync(screenshotsDir, { recursive: true });
-  }
-
-  const baseUrl = 'http://localhost:3000';
-
-  console.log('Starting screenshot capture...');
-
-  // === Screenshot 1: Dashboard principal ===
   try {
-    console.log('\n[Screenshot 1/3] Navigating to /dashboard...');
-    await page.goto(`${baseUrl}/dashboard`, { 
+    // Navigate to dashboard
+    console.log('Navigating to /dashboard...');
+    await page.goto('http://localhost:3000/dashboard', {
       waitUntil: 'domcontentloaded',
-      timeout: 10000 
+      timeout: 15000
     });
 
-    // Wait for charts to be visible - look for canvas (chart.js) or SVG charts
-    console.log('Waiting for charts to render...');
-    
-    // Try multiple selectors for robustness
-    const chartSelectors = [
-      'canvas[data-testid="area-chart"]',
-      'canvas[data-testid="bar-chart"]',
-      'canvas[data-testid="pie-chart"]',
-      'canvas[data-testid="line-chart"]',
-      'canvas',
-      '[data-testid="stat-card"]',
-      '[class*="chart"]',
-      'svg.recharts-surface'
-    ];
-
-    let chartsVisible = false;
-    for (const selector of chartSelectors) {
-      try {
-        const element = page.locator(selector).first();
-        await element.waitFor({ state: 'visible', timeout: 5000 });
-        console.log(`Charts found with selector: ${selector}`);
-        chartsVisible = true;
-        break;
-      } catch {
-        // Try next selector
-      }
-    }
-
-    if (!chartsVisible) {
-      // Fallback: wait for network to be idle and any chart element
+    // Screenshot 1: Wait for .charts-section to be visible
+    console.log('Screenshot 1: Waiting for .charts-section...');
+    try {
+      const chartsSection = page.locator('.charts-section');
+      await expect(chartsSection).toBeVisible({ timeout: 10000 });
       await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-      const anyChart = page.locator('canvas, svg.recharts-surface, [class*="chart"]').first();
-      await anyChart.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+      await page.screenshot({
+        path: 'screenshots/screenshot-1.png',
+        fullPage: false
+      });
+      screenshots.push('screenshot-1.png');
+      console.log('✓ Screenshot 1 captured');
+    } catch (error) {
+      console.error('✗ Screenshot 1 failed:', error.message);
     }
 
-    // Additional wait for animations/rendering to complete
-    await page.waitForLoadState('networkidle').catch(() => {});
-    
-    // Small delay for final render
-    await page.waitForFunction(() => document.querySelector('canvas, svg') !== null, { timeout: 5000 }).catch(() => {});
+    // Screenshot 2: Focus on Vulnerability Trends chart
+    console.log('Screenshot 2: Scrolling to vulnerability-trends-chart...');
+    try {
+      const vulnChart = page.locator('[data-testid="vulnerability-trends-chart"]');
+      await vulnChart.scrollIntoViewIfNeeded();
+      await expect(vulnChart).toBeVisible({ timeout: 5000 });
+      // Small delay for smooth scroll completion
+      await page.waitForTimeout(300);
+      await page.screenshot({
+        path: 'screenshots/screenshot-2.png',
+        fullPage: false
+      });
+      screenshots.push('screenshot-2.png');
+      console.log('✓ Screenshot 2 captured');
+    } catch (error) {
+      console.error('✗ Screenshot 2 failed:', error.message);
+    }
 
-    console.log('Charts visible, capturing screenshot...');
-    await page.screenshot({ 
-      path: 'screenshots/screenshot-1-dashboard.png', 
-      fullPage: false 
-    });
-    console.log('Screenshot 1 saved: screenshots/screenshot-1-dashboard.png');
+    // Screenshot 3: Focus on Resolution Time chart
+    console.log('Screenshot 3: Scrolling to resolution-time-chart...');
+    try {
+      const resolutionChart = page.locator('[data-testid="resolution-time-chart"]');
+      await resolutionChart.scrollIntoViewIfNeeded();
+      await expect(resolutionChart).toBeVisible({ timeout: 5000 });
+      await page.waitForTimeout(300);
+      await page.screenshot({
+        path: 'screenshots/screenshot-3.png',
+        fullPage: false
+      });
+      screenshots.push('screenshot-3.png');
+      console.log('✓ Screenshot 3 captured');
+    } catch (error) {
+      console.error('✗ Screenshot 3 failed:', error.message);
+    }
+
+    // Screenshot 4: Focus on Dependencies chart
+    console.log('Screenshot 4: Scrolling to dependencies-chart...');
+    try {
+      const depsChart = page.locator('[data-testid="dependencies-chart"]');
+      await depsChart.scrollIntoViewIfNeeded();
+      await expect(depsChart).toBeVisible({ timeout: 5000 });
+      await page.waitForTimeout(300);
+      await page.screenshot({
+        path: 'screenshots/screenshot-4.png',
+        fullPage: false
+      });
+      screenshots.push('screenshot-4.png');
+      console.log('✓ Screenshot 4 captured');
+    } catch (error) {
+      console.error('✗ Screenshot 4 failed:', error.message);
+    }
+
+    // Screenshot 5: Focus on Severity Distribution chart
+    console.log('Screenshot 5: Scrolling to severity-distribution-chart...');
+    try {
+      const severityChart = page.locator('[data-testid="severity-distribution-chart"]');
+      await severityChart.scrollIntoViewIfNeeded();
+      await expect(severityChart).toBeVisible({ timeout: 5000 });
+      await page.waitForTimeout(300);
+      await page.screenshot({
+        path: 'screenshots/screenshot-5.png',
+        fullPage: false
+      });
+      screenshots.push('screenshot-5.png');
+      console.log('✓ Screenshot 5 captured');
+    } catch (error) {
+      console.error('✗ Screenshot 5 failed:', error.message);
+    }
 
   } catch (error) {
-    console.error('Screenshot 1 failed:', error.message);
-    await page.screenshot({ 
-      path: 'screenshots/screenshot-1-error.png', 
-      fullPage: false 
-    }).catch(() => {});
+    console.error('Fatal error during screenshot capture:', error.message);
+  } finally {
+    await browser.close();
+    console.log('\n--- Summary ---');
+    console.log(`Screenshots captured: ${screenshots.length}/5`);
+    screenshots.forEach((s, i) => console.log(`  ${i + 1}. ${s}`));
+    console.log('Browser closed. Script complete.');
   }
-
-  // === Screenshot 2: Security page ===
-  try {
-    console.log('\n[Screenshot 2/3] Navigating to /dashboard/security...');
-    await page.goto(`${baseUrl}/dashboard/security`, { 
-      waitUntil: 'domcontentloaded',
-      timeout: 10000 
-    });
-
-    // Wait for SecurityAlerts component to be visible
-    console.log('Waiting for SecurityAlerts to render...');
-    
-    const securitySelectors = [
-      '[data-testid="security-alerts"]',
-      '[data-testid="security-alerts-component"]',
-      '[class*="security-alerts"]',
-      '[class*="SecurityAlerts"]',
-      '[role="region"][aria-label*="security" i]',
-      '[role="alert"]'
-    ];
-
-    let securityVisible = false;
-    for (const selector of securitySelectors) {
-      try {
-        const element = page.locator(selector).first();
-        await element.waitFor({ state: 'visible', timeout: 5000 });
-        console.log(`SecurityAlerts found with selector: ${selector}`);
-        securityVisible = true;
-        break;
-      } catch {
-        // Try next selector
-      }
-    }
-
-    if (!securityVisible) {
-      // Fallback: wait for page content
-      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-      // Look for any alert-like content
-      const alertContent = page.locator('h1, h2, [class*="alert"], [class*="security"]').first();
-      await alertContent.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    }
-
-    await page.waitForLoadState('networkidle').catch(() => {});
-    
-    console.log('Security page loaded, capturing screenshot...');
-    await page.screenshot({ 
-      path: 'screenshots/screenshot-2-security.png', 
-      fullPage: false 
-    });
-    console.log('Screenshot 2 saved: screenshots/screenshot-2-security.png');
-
-  } catch (error) {
-    console.error('Screenshot 2 failed:', error.message);
-    await page.screenshot({ 
-      path: 'screenshots/screenshot-2-error.png', 
-      fullPage: false 
-    }).catch(() => {});
-  }
-
-  // === Screenshot 3: Analytics page ===
-  try {
-    console.log('\n[Screenshot 3/3] Navigating to /dashboard/analytics...');
-    await page.goto(`${baseUrl}/dashboard/analytics`, { 
-      waitUntil: 'domcontentloaded',
-      timeout: 10000 
-    });
-
-    // Wait for page content to load
-    console.log('Waiting for analytics page content...');
-    
-    // Wait for any main content element
-    await page.waitForLoadState('networkidle').catch(() => {});
-    
-    const analyticsSelectors = [
-      '[data-testid="analytics-content"]',
-      '[data-testid="analytics-page"]',
-      'canvas[data-testid*="chart"]',
-      'svg.recharts-surface',
-      '[class*="analytics"]',
-      'main',
-      'h1',
-      'h2'
-    ];
-
-    for (const selector of analyticsSelectors) {
-      try {
-        const element = page.locator(selector).first();
-        await element.waitFor({ state: 'visible', timeout: 3000 });
-        console.log(`Analytics content found with selector: ${selector}`);
-        break;
-      } catch {
-        // Try next selector
-      }
-    }
-
-    // Additional stabilization
-    await page.waitForLoadState('networkidle').catch(() => {});
-    await page.waitForFunction(() => document.readyState === 'complete', { timeout: 5000 }).catch(() => {});
-
-    console.log('Analytics page loaded, capturing screenshot...');
-    await page.screenshot({ 
-      path: 'screenshots/screenshot-3-analytics.png', 
-      fullPage: false 
-    });
-    console.log('Screenshot 3 saved: screenshots/screenshot-3-analytics.png');
-
-  } catch (error) {
-    console.error('Screenshot 3 failed:', error.message);
-    await page.screenshot({ 
-      path: 'screenshots/screenshot-3-error.png', 
-      fullPage: false 
-    }).catch(() => {});
-  }
-
-  // Cleanup
-  await browser.close();
-  console.log('\nScreenshot capture complete!');
-  console.log('Output: screenshots/screenshot-{1-3}-{name}.png');
-}
-
-captureScreenshots().catch(error => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});
+})();

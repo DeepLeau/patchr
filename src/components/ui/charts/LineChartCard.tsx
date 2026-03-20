@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
+  Area,
 } from "recharts";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +58,11 @@ export function LineChartCard({ title, data, loading = false }: LineChartCardPro
   const minValue = Math.min(...data.map((d) => d.avgDays));
   const maxValue = Math.max(...data.map((d) => d.avgDays));
   const currentValue = data[data.length - 1].avgDays;
+  
+  // Target = moyenne initiale (W1) pour montrer variance
+  const targetValue = data[0].avgDays;
+  // Bande de tolérance ± 0.5 jours
+  const toleranceBand = 0.5;
 
   return (
     <motion.div
@@ -87,6 +93,26 @@ export function LineChartCard({ title, data, loading = false }: LineChartCardPro
             data={data}
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
           >
+            <defs>
+              {/* Bande haute - vert pâle */}
+              <linearGradient id="bandeHaute" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity={0.15} />
+                <stop offset="100%" stopColor="#10b981" stopOpacity={0.05} />
+              </linearGradient>
+              {/* Bande basse - vert pâle inversé */}
+              <linearGradient id="bandeBasse" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity={0.05} />
+                <stop offset="100%" stopColor="#10b981" stopOpacity={0.15} />
+              </linearGradient>
+              {/* Glow effect pour la ligne réelle */}
+              <filter id="glowLine" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke="rgba(255,255,255,0.05)"
@@ -106,31 +132,70 @@ export function LineChartCard({ title, data, loading = false }: LineChartCardPro
               tick={{ fill: "#52525b", fontSize: 11 }}
             />
             <Tooltip content={<CustomTooltip />} />
+            
+            {/* Bande de tolérance - ligne haute target en pointillé */}
             <ReferenceLine
-              y={minValue}
-              stroke="#4ade80"
+              y={targetValue + toleranceBand}
+              stroke="#10b981"
               strokeDasharray="5 5"
-              strokeOpacity={0.3}
+              strokeOpacity={0.25}
             />
+            
+            {/* Bande haute de tolérance */}
+            <Area
+              type="monotone"
+              dataKey={() => targetValue + toleranceBand}
+              stroke="transparent"
+              fill="url(#bandeHaute)"
+              animationDuration={0}
+            />
+            
+            {/* Bande basse de tolérance */}
+            <Area
+              type="monotone"
+              dataKey={() => targetValue - toleranceBand}
+              stroke="transparent"
+              fill="url(#bandeBasse)"
+              animationDuration={0}
+            />
+            
+            {/* Ligne target en pointillé vert */}
+            <ReferenceLine
+              y={targetValue}
+              stroke="#10b981"
+              strokeDasharray="5 5"
+              strokeOpacity={0.5}
+              label={{
+                value: "Target",
+                position: "right",
+                fill: "#10b981",
+                fontSize: 10,
+                opacity: 0.7,
+              }}
+            />
+            
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1 }}
             >
+              {/* Ligne réelle avec dots et glow */}
               <Line
                 type="monotone"
                 dataKey="avgDays"
-                stroke="#4ade80"
+                stroke="#10b981"
                 strokeWidth={2.5}
+                filter="url(#glowLine)"
                 dot={{
-                  fill: "#4ade80",
-                  strokeWidth: 0,
+                  fill: "#1a1a1a",
+                  stroke: "#10b981",
+                  strokeWidth: 2,
                   r: 4,
                 }}
                 activeDot={{
-                  fill: "#4ade80",
+                  fill: "#10b981",
+                  stroke: "#1a1a1a",
                   strokeWidth: 2,
-                  stroke: "#111",
                   r: 6,
                 }}
                 animationDuration={1500}
