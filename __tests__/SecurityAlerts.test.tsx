@@ -18,33 +18,43 @@ jest.mock('framer-motion', () => {
 const mockAlerts: Alert[] = [
   {
     id: "alert-1",
-    title: "SQL Injection in express",
-    description: "CVE-2024-1234 - High severity SQL injection vulnerability",
-    severity: "high",
-    package: "express@4.18.2",
-    repository: "acme/api-gateway",
-    detectedAt: "2h ago",
+    title: "Remote Code Execution in json5",
+    description: "Prototype pollution vulnerability allowing RCE via '__proto__' property",
+    severity: "critical",
+    package: "json5@1.0.1",
+    repository: "acme/api-service",
+    detectedAt: "2 hours ago",
     actionRequired: true,
   },
   {
     id: "alert-2",
-    title: "XSS vulnerability in lodash",
-    description: "DOM-based XSS found in template rendering",
-    severity: "critical",
+    title: "Prototype Pollution in lodash",
+    description: "Allows attackers to inject properties via crafted __proto__ payloads",
+    severity: "high",
     package: "lodash@4.17.20",
-    repository: "acme/web-app",
-    detectedAt: "1d ago",
+    repository: "acme/web-frontend",
+    detectedAt: "5 hours ago",
     actionRequired: true,
   },
   {
     id: "alert-3",
-    title: "Outdated axios version",
-    description: "Consider upgrading to latest stable",
-    severity: "low",
-    package: "axios@0.27.0",
-    repository: "acme/dashboard",
-    detectedAt: "3d ago",
+    title: "Open Redirect in follow-redirects",
+    description: "Unintended behavior when handling empty hostname",
+    severity: "medium",
+    package: "follow-redirects@1.15.0",
+    repository: "acme/api-service",
+    detectedAt: "1 day ago",
     actionRequired: false,
+  },
+  {
+    id: "alert-4",
+    title: "ReDoS in moment",
+    description: "Regular expression denial of service via parseFormat",
+    severity: "high",
+    package: "moment@2.29.1",
+    repository: "acme/ml-pipeline",
+    detectedAt: "2 days ago",
+    actionRequired: true,
   },
 ];
 
@@ -55,7 +65,7 @@ describe("SecurityAlerts", () => {
 
   it("should render alert count in header", () => {
     render(<SecurityAlerts alerts={mockAlerts} />);
-    const badge = screen.getByText("3");
+    const badge = screen.getByText("4");
     expect(badge).toBeInTheDocument();
   });
 
@@ -65,8 +75,8 @@ describe("SecurityAlerts", () => {
 
     await user.click(screen.getByRole("button", { name: /critical/i }));
 
-    expect(screen.getByText(/sql injection/i)).toBeInTheDocument();
-    expect(screen.queryByText(/outdated axios/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/remote code execution/i)).toBeInTheDocument();
+    expect(screen.queryByText(/open redirect/i)).not.toBeInTheDocument();
   });
 
   it("should filter to action-required alerts only when clicking action button", async () => {
@@ -77,7 +87,7 @@ describe("SecurityAlerts", () => {
 
     const alerts = screen.getAllByRole("listitem").length;
     expect(alerts).toBeGreaterThan(0);
-    expect(screen.queryByText(/outdated axios/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/open redirect/i)).not.toBeInTheDocument();
   });
 
   it("should dismiss an alert when clicking X button", async () => {
@@ -88,8 +98,8 @@ describe("SecurityAlerts", () => {
     const dismissBtn = within(firstAlert).getByRole("button", { name: /close/i });
     await user.click(dismissBtn);
 
-    expect(screen.queryByText(/sql injection/i)).not.toBeInTheDocument();
-    const badge = screen.getByText("2");
+    expect(screen.queryByText(/remote code execution/i)).not.toBeInTheDocument();
+    const badge = screen.getByText("3");
     expect(badge).toBeInTheDocument();
   });
 
@@ -102,7 +112,7 @@ describe("SecurityAlerts", () => {
       await user.click(btn);
     }
 
-    expect(screen.getByText(/all clear/i)).toBeInTheDocument();
+    expect(screen.getByText(/no alerts/i)).toBeInTheDocument();
   });
 
   it("should render loading skeleton when loading prop is true", () => {
