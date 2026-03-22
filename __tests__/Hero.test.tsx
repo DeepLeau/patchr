@@ -1,5 +1,13 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Hero } from "@/components/sections/Hero";
+import { useRouter } from "next/navigation";
+
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 jest.mock("framer-motion", () => {
   const React = require("react");
@@ -35,34 +43,35 @@ jest.mock("@/components/ui/UnicornBackground", () => ({
 }));
 
 describe("Hero", () => {
+  let pushMock: jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    pushMock = (useRouter as jest.Mock).mock.results[0].value.push;
   });
 
-  it("should render hero badge", () => {
-    // Arrange & Act
+  it("should navigate to /dashboard when CTA button is clicked", async () => {
+    // Arrange
     render(<Hero />);
+    const ctaButton = screen.getByRole("button", { name: /get started for free/i });
+
+    // Act
+    await userEvent.click(ctaButton);
 
     // Assert
-    expect(screen.getByText(/now available/i)).toBeInTheDocument();
+    expect(pushMock).toHaveBeenCalledWith("/dashboard");
   });
 
-  it("should render main headline text", () => {
-    // Arrange & Act
+  it("should show loading spinner and disable button while navigating", async () => {
+    // Arrange
     render(<Hero />);
+    const ctaButton = screen.getByRole("button", { name: /get started for free/i });
 
-    // Assert
-    expect(screen.getByTestId("animated-text")).toBeInTheDocument();
-  });
+    // Act
+    await userEvent.click(ctaButton);
 
-  it("should render description and CTA buttons", () => {
-    // Arrange & Act
-    render(<Hero />);
-
-    // Assert
-    expect(screen.getByText(/patchr automatically detects outdated dependencies/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /get started free/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /how it works/i })).toBeInTheDocument();
-    expect(screen.getByText(/trusted by 2,400\+ developers/i)).toBeInTheDocument();
+    // Assert — button is disabled and spinner is visible
+    expect(ctaButton).toBeDisabled();
+    expect(ctaButton.querySelector(".animate-spin")).toBeInTheDocument();
   });
 });

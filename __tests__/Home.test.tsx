@@ -1,6 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
 
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 jest.mock("framer-motion", () => {
   const React = require("react");
   const strip = ({
@@ -81,10 +87,10 @@ describe("Home Page", () => {
     // Arrange & Act
     render(<Home />);
 
-    // Assert
-    expect(screen.getByRole("link", { name: /features/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /pricing/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /docs/i })).toBeInTheDocument();
+    // Assert - use getAllByRole since links may appear in multiple places (nav + footer)
+    expect(screen.getAllByRole("link", { name: /features/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /pricing/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /docs/i }).length).toBeGreaterThan(0);
   });
 
   it("should render footer with copyright", () => {
