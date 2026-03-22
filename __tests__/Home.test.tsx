@@ -27,6 +27,12 @@ jest.mock("framer-motion", () => {
   };
 });
 
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+  }),
+}));
+
 jest.mock("@/components/ui/AnimatedTextGenerate", () => ({
   AnimatedTextGenerate: ({ text }: { text: string }) => (
     <div data-testid="animated-text">{text}</div>
