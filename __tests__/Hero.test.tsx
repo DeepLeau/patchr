@@ -1,6 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { Hero } from "@/components/sections/Hero";
 
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+  }),
+}));
+
 jest.mock("framer-motion", () => {
   const React = require("react");
   const strip = ({
@@ -55,14 +61,27 @@ describe("Hero", () => {
     expect(screen.getByTestId("animated-text")).toBeInTheDocument();
   });
 
-  it("should render description and CTA buttons", () => {
+  it("should render description and secondary CTA button", () => {
     // Arrange & Act
     render(<Hero />);
 
     // Assert
     expect(screen.getByText(/patchr automatically detects outdated dependencies/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /get started free/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /how it works/i })).toBeInTheDocument();
     expect(screen.getByText(/trusted by 2,400\+ developers/i)).toBeInTheDocument();
+  });
+
+  it("should navigate to dashboard when clicking Get started button", () => {
+    // Arrange
+    const { useRouter } = require("next/navigation");
+    render(<Hero />);
+    const routerPush = useRouter().push;
+
+    // Act
+    const ctaButton = screen.getByRole("button", { name: /get started for free/i });
+    ctaButton.click();
+
+    // Assert
+    expect(routerPush).toHaveBeenCalledWith("/dashboard");
   });
 });
