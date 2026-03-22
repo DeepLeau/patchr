@@ -1,114 +1,124 @@
-const { chromium, expect } = require('@playwright/test');
+const { chromium } = require('@playwright/test');
+const path = require('path');
+const fs = require('fs');
 
-(async () => {
+async function captureScreenshots() {
+  const screenshotsDir = path.join(__dirname, 'screenshots');
+  
+  // Create screenshots directory if it doesn't exist
+  if (!fs.existsSync(screenshotsDir)) {
+    fs.mkdirSync(screenshotsDir, { recursive: true });
+  }
+
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 }
   });
   const page = await context.newPage();
 
-  const screenshots = [];
+  // Enable console logging for debugging
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      console.error('Browser console error:', msg.text());
+    }
+  });
+
+  page.on('pageerror', error => {
+    console.error('Page error:', error.message);
+  });
 
   try {
-    // Navigate to dashboard
-    console.log('Navigating to /dashboard...');
-    await page.goto('http://localhost:3000/dashboard', {
+    // ========================================
+    // SCREENSHOT 1: Hero section on homepage
+    // ========================================
+    console.log('\n--- Screenshot 1: Hero section ---');
+    
+    await page.goto('http://localhost:3000/', {
       waitUntil: 'domcontentloaded',
       timeout: 15000
     });
 
-    // Screenshot 1: Wait for .charts-section to be visible
-    console.log('Screenshot 1: Waiting for .charts-section...');
-    try {
-      const chartsSection = page.locator('.charts-section');
-      await expect(chartsSection).toBeVisible({ timeout: 10000 });
-      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-      await page.screenshot({
-        path: 'screenshots/screenshot-1.png',
-        fullPage: false
-      });
-      screenshots.push('screenshot-1.png');
-      console.log('✓ Screenshot 1 captured');
-    } catch (error) {
-      console.error('✗ Screenshot 1 failed:', error.message);
-    }
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('networkidle', { timeout: 10000 });
 
-    // Screenshot 2: Focus on Vulnerability Trends chart
-    console.log('Screenshot 2: Scrolling to vulnerability-trends-chart...');
-    try {
-      const vulnChart = page.locator('[data-testid="vulnerability-trends-chart"]');
-      await vulnChart.scrollIntoViewIfNeeded();
-      await expect(vulnChart).toBeVisible({ timeout: 5000 });
-      // Small delay for smooth scroll completion
-      await page.waitForTimeout(300);
-      await page.screenshot({
-        path: 'screenshots/screenshot-2.png',
-        fullPage: false
-      });
-      screenshots.push('screenshot-2.png');
-      console.log('✓ Screenshot 2 captured');
-    } catch (error) {
-      console.error('✗ Screenshot 2 failed:', error.message);
-    }
+    // Wait for the CTA button with specific text to be visible
+    const getStartedButton = page.getByRole('button', { name: /get started for free/i });
+    await getStartedButton.waitFor({ state: 'visible', timeout: 10000 });
 
-    // Screenshot 3: Focus on Resolution Time chart
-    console.log('Screenshot 3: Scrolling to resolution-time-chart...');
-    try {
-      const resolutionChart = page.locator('[data-testid="resolution-time-chart"]');
-      await resolutionChart.scrollIntoViewIfNeeded();
-      await expect(resolutionChart).toBeVisible({ timeout: 5000 });
-      await page.waitForTimeout(300);
-      await page.screenshot({
-        path: 'screenshots/screenshot-3.png',
-        fullPage: false
-      });
-      screenshots.push('screenshot-3.png');
-      console.log('✓ Screenshot 3 captured');
-    } catch (error) {
-      console.error('✗ Screenshot 3 failed:', error.message);
+    // Validate the button text
+    const buttonText = await getStartedButton.textContent();
+    console.log(`  Button text found: "${buttonText}"`);
+    
+    if (!buttonText.toLowerCase().includes('get started for free')) {
+      throw new Error(`Expected button text to contain "Get started for free", got "${buttonText}"`);
     }
+    console.log('  ✓ Button text validated successfully');
 
-    // Screenshot 4: Focus on Dependencies chart
-    console.log('Screenshot 4: Scrolling to dependencies-chart...');
-    try {
-      const depsChart = page.locator('[data-testid="dependencies-chart"]');
-      await depsChart.scrollIntoViewIfNeeded();
-      await expect(depsChart).toBeVisible({ timeout: 5000 });
-      await page.waitForTimeout(300);
-      await page.screenshot({
-        path: 'screenshots/screenshot-4.png',
-        fullPage: false
-      });
-      screenshots.push('screenshot-4.png');
-      console.log('✓ Screenshot 4 captured');
-    } catch (error) {
-      console.error('✗ Screenshot 4 failed:', error.message);
-    }
+    // Capture screenshot 1
+    const screenshot1Path = path.join(screenshotsDir, 'screenshot-1-hero-cta.png');
+    await page.screenshot({ 
+      path: screenshot1Path, 
+      fullPage: false,
+      animations: 'disabled'
+    });
+    console.log(`  ✓ Screenshot saved: ${screenshot1Path}`);
 
-    // Screenshot 5: Focus on Severity Distribution chart
-    console.log('Screenshot 5: Scrolling to severity-distribution-chart...');
-    try {
-      const severityChart = page.locator('[data-testid="severity-distribution-chart"]');
-      await severityChart.scrollIntoViewIfNeeded();
-      await expect(severityChart).toBeVisible({ timeout: 5000 });
-      await page.waitForTimeout(300);
-      await page.screenshot({
-        path: 'screenshots/screenshot-5.png',
-        fullPage: false
-      });
-      screenshots.push('screenshot-5.png');
-      console.log('✓ Screenshot 5 captured');
-    } catch (error) {
-      console.error('✗ Screenshot 5 failed:', error.message);
-    }
+    // ========================================
+    // SCREENSHOT 2: Dashboard after CTA click
+    // ========================================
+    console.log('\n--- Screenshot 2: Dashboard ---');
+
+    // Click the CTA button
+    await getStartedButton.click();
+    console.log('  ✓ Clicked "Get started for free" button');
+
+    // Wait for navigation to dashboard
+    await page.waitForURL('**/dashboard**', { timeout: 10000 });
+    console.log('  ✓ Navigated to /dashboard');
+
+    // Wait for dashboard content to be visible
+    const dashboardContent = page.getByTestId('dashboard-content');
+    await dashboardContent.waitFor({ state: 'visible', timeout: 10000 });
+    console.log('  ✓ Dashboard content is visible');
+
+    // Capture screenshot 2
+    const screenshot2Path = path.join(screenshotsDir, 'screenshot-2-dashboard.png');
+    await page.screenshot({ 
+      path: screenshot2Path, 
+      fullPage: false,
+      animations: 'disabled'
+    });
+    console.log(`  ✓ Screenshot saved: ${screenshot2Path}`);
+
+    console.log('\n========================================');
+    console.log('All screenshots captured successfully!');
+    console.log('========================================\n');
 
   } catch (error) {
-    console.error('Fatal error during screenshot capture:', error.message);
+    console.error('\n❌ Error during screenshot capture:', error.message);
+    
+    // Capture error screenshot if possible
+    try {
+      const errorPath = path.join(screenshotsDir, 'screenshot-error.png');
+      await page.screenshot({ path: errorPath, fullPage: true });
+      console.log(`Error screenshot saved: ${errorPath}`);
+    } catch (screenshotError) {
+      console.error('Could not capture error screenshot:', screenshotError.message);
+    }
+    
+    throw error;
   } finally {
     await browser.close();
-    console.log('\n--- Summary ---');
-    console.log(`Screenshots captured: ${screenshots.length}/5`);
-    screenshots.forEach((s, i) => console.log(`  ${i + 1}. ${s}`));
-    console.log('Browser closed. Script complete.');
   }
-})();
+}
+
+// Execute the script
+captureScreenshots()
+  .then(() => {
+    console.log('Script completed.');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('Script failed:', error);
+    process.exit(1);
+  });

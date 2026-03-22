@@ -1,5 +1,16 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Hero } from "@/components/sections/Hero";
+
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+  }),
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 jest.mock("framer-motion", () => {
   const React = require("react");
@@ -35,34 +46,41 @@ jest.mock("@/components/ui/UnicornBackground", () => ({
 }));
 
 describe("Hero", () => {
+  const { useRouter } = jest.requireMock("next/navigation");
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it("should render hero badge", () => {
-    // Arrange & Act
     render(<Hero />);
-
-    // Assert
     expect(screen.getByText(/now available/i)).toBeInTheDocument();
   });
 
   it("should render main headline text", () => {
-    // Arrange & Act
     render(<Hero />);
-
-    // Assert
     expect(screen.getByTestId("animated-text")).toBeInTheDocument();
   });
 
-  it("should render description and CTA buttons", () => {
-    // Arrange & Act
+  it("should render description and secondary CTA button", () => {
     render(<Hero />);
-
-    // Assert
     expect(screen.getByText(/patchr automatically detects outdated dependencies/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /get started free/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /how it works/i })).toBeInTheDocument();
     expect(screen.getByText(/trusted by 2,400\+ developers/i)).toBeInTheDocument();
+  });
+
+  it("should navigate to dashboard when clicking Get started for free button", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const pushMock = jest.fn();
+    useRouter.mockReturnValue({ push: pushMock });
+
+    // Act
+    render(<Hero />);
+    const ctaButton = screen.getByRole("button", { name: /get started for free/i });
+    await user.click(ctaButton);
+
+    // Assert
+    expect(pushMock).toHaveBeenCalledWith("/dashboard");
   });
 });
