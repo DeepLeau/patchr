@@ -1,114 +1,128 @@
-const { chromium, expect } = require('@playwright/test');
+const { chromium } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
 
-(async () => {
+const SCREENSHOTS_DIR = 'screenshots';
+
+async function ensureScreenshotsDir() {
+  if (!fs.existsSync(SCREENSHOTS_DIR)) {
+    fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
+  }
+}
+
+async function runScreenshotScript() {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 }
   });
   const page = await context.newPage();
 
-  const screenshots = [];
+  await ensureScreenshotsDir();
 
+  console.log('Starting screenshot capture script...\n');
+
+  // ─── Screenshot 1: Hero CTA Button on Home Page ───
   try {
-    // Navigate to dashboard
-    console.log('Navigating to /dashboard...');
-    await page.goto('http://localhost:3000/dashboard', {
+    console.log('[1/3] Navigating to home page and waiting for hero CTA...');
+    await page.goto('http://localhost:3000/', { 
       waitUntil: 'domcontentloaded',
-      timeout: 15000
+      timeout: 15000 
     });
 
-    // Screenshot 1: Wait for .charts-section to be visible
-    console.log('Screenshot 1: Waiting for .charts-section...');
-    try {
-      const chartsSection = page.locator('.charts-section');
-      await expect(chartsSection).toBeVisible({ timeout: 10000 });
-      await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
-      await page.screenshot({
-        path: 'screenshots/screenshot-1.png',
-        fullPage: false
-      });
-      screenshots.push('screenshot-1.png');
-      console.log('✓ Screenshot 1 captured');
-    } catch (error) {
-      console.error('✗ Screenshot 1 failed:', error.message);
+    const heroCtaButton = page.locator('[data-testid="hero-cta-button"]');
+    await heroCtaButton.waitFor({ state: 'visible', timeout: 10000 });
+    
+    const buttonText = await heroCtaButton.textContent();
+    console.log(`    Button text: "${buttonText}"`);
+    
+    if (buttonText && buttonText.includes('Get started for free')) {
+      console.log('    ✓ Button copy validated: "Get started for free"');
+    } else {
+      console.log(`    ⚠ Unexpected button text: "${buttonText}"`);
     }
 
-    // Screenshot 2: Focus on Vulnerability Trends chart
-    console.log('Screenshot 2: Scrolling to vulnerability-trends-chart...');
-    try {
-      const vulnChart = page.locator('[data-testid="vulnerability-trends-chart"]');
-      await vulnChart.scrollIntoViewIfNeeded();
-      await expect(vulnChart).toBeVisible({ timeout: 5000 });
-      // Small delay for smooth scroll completion
-      await page.waitForTimeout(300);
-      await page.screenshot({
-        path: 'screenshots/screenshot-2.png',
-        fullPage: false
-      });
-      screenshots.push('screenshot-2.png');
-      console.log('✓ Screenshot 2 captured');
-    } catch (error) {
-      console.error('✗ Screenshot 2 failed:', error.message);
-    }
-
-    // Screenshot 3: Focus on Resolution Time chart
-    console.log('Screenshot 3: Scrolling to resolution-time-chart...');
-    try {
-      const resolutionChart = page.locator('[data-testid="resolution-time-chart"]');
-      await resolutionChart.scrollIntoViewIfNeeded();
-      await expect(resolutionChart).toBeVisible({ timeout: 5000 });
-      await page.waitForTimeout(300);
-      await page.screenshot({
-        path: 'screenshots/screenshot-3.png',
-        fullPage: false
-      });
-      screenshots.push('screenshot-3.png');
-      console.log('✓ Screenshot 3 captured');
-    } catch (error) {
-      console.error('✗ Screenshot 3 failed:', error.message);
-    }
-
-    // Screenshot 4: Focus on Dependencies chart
-    console.log('Screenshot 4: Scrolling to dependencies-chart...');
-    try {
-      const depsChart = page.locator('[data-testid="dependencies-chart"]');
-      await depsChart.scrollIntoViewIfNeeded();
-      await expect(depsChart).toBeVisible({ timeout: 5000 });
-      await page.waitForTimeout(300);
-      await page.screenshot({
-        path: 'screenshots/screenshot-4.png',
-        fullPage: false
-      });
-      screenshots.push('screenshot-4.png');
-      console.log('✓ Screenshot 4 captured');
-    } catch (error) {
-      console.error('✗ Screenshot 4 failed:', error.message);
-    }
-
-    // Screenshot 5: Focus on Severity Distribution chart
-    console.log('Screenshot 5: Scrolling to severity-distribution-chart...');
-    try {
-      const severityChart = page.locator('[data-testid="severity-distribution-chart"]');
-      await severityChart.scrollIntoViewIfNeeded();
-      await expect(severityChart).toBeVisible({ timeout: 5000 });
-      await page.waitForTimeout(300);
-      await page.screenshot({
-        path: 'screenshots/screenshot-5.png',
-        fullPage: false
-      });
-      screenshots.push('screenshot-5.png');
-      console.log('✓ Screenshot 5 captured');
-    } catch (error) {
-      console.error('✗ Screenshot 5 failed:', error.message);
-    }
-
+    await page.screenshot({ 
+      path: 'screenshots/screenshot-1-hero-cta.png', 
+      fullPage: false 
+    });
+    console.log('    ✓ Screenshot saved: screenshot-1-hero-cta.png\n');
   } catch (error) {
-    console.error('Fatal error during screenshot capture:', error.message);
-  } finally {
-    await browser.close();
-    console.log('\n--- Summary ---');
-    console.log(`Screenshots captured: ${screenshots.length}/5`);
-    screenshots.forEach((s, i) => console.log(`  ${i + 1}. ${s}`));
-    console.log('Browser closed. Script complete.');
+    console.error(`    ✗ Screenshot 1 failed: ${error.message}`);
+    await page.screenshot({ 
+      path: 'screenshots/screenshot-1-error.png', 
+      fullPage: false 
+    });
   }
-})();
+
+  // ─── Screenshot 2: Click CTA and Verify Dashboard Redirect ───
+  try {
+    console.log('[2/3] Clicking hero CTA and waiting for dashboard redirect...');
+    
+    const heroCtaButton = page.locator('[data-testid="hero-cta-button"]');
+    await Promise.all([
+      page.waitForURL('**/dashboard**', { timeout: 10000 }),
+      heroCtaButton.click()
+    ]);
+
+    const currentUrl = page.url();
+    console.log(`    Current URL: ${currentUrl}`);
+    
+    if (currentUrl.includes('/dashboard')) {
+      console.log('    ✓ Redirect to dashboard validated');
+    } else {
+      console.log(`    ⚠ URL does not contain /dashboard: ${currentUrl}`);
+    }
+
+    await page.screenshot({ 
+      path: 'screenshots/screenshot-2-redirect.png', 
+      fullPage: false 
+    });
+    console.log('    ✓ Screenshot saved: screenshot-2-redirect.png\n');
+  } catch (error) {
+    console.error(`    ✗ Screenshot 2 failed: ${error.message}`);
+    await page.screenshot({ 
+      path: 'screenshots/screenshot-2-error.png', 
+      fullPage: false 
+    });
+  }
+
+  // ─── Screenshot 3: Dashboard Page State ───
+  try {
+    console.log('[3/3] Waiting for dashboard to fully load...');
+    
+    // Wait for either dashboard-page testid OR h1 to be visible
+    const dashboardPage = page.locator('[data-testid="dashboard-page"]');
+    const dashboardH1 = page.locator('h1');
+    
+    // Use Promise.race to wait for first available selector
+    const dashboardVisible = await Promise.race([
+      dashboardPage.waitFor({ state: 'visible', timeout: 10000 }).then(() => 'dashboard-page'),
+      dashboardH1.first().waitFor({ state: 'visible', timeout: 10000 }).then(() => 'h1')
+    ]);
+
+    console.log(`    Dashboard detected via: ${dashboardVisible}`);
+    console.log('    ✓ Dashboard loaded successfully');
+
+    await page.screenshot({ 
+      path: 'screenshots/screenshot-3-dashboard.png', 
+      fullPage: false 
+    });
+    console.log('    ✓ Screenshot saved: screenshot-3-dashboard.png\n');
+  } catch (error) {
+    console.error(`    ✗ Screenshot 3 failed: ${error.message}`);
+    await page.screenshot({ 
+      path: 'screenshots/screenshot-3-error.png', 
+      fullPage: false 
+    });
+  }
+
+  console.log('Screenshot capture complete.');
+  console.log('Output directory:', SCREENSHOTS_DIR);
+  
+  await browser.close();
+}
+
+runScreenshotScript().catch((error) => {
+  console.error('Script execution failed:', error);
+  process.exit(1);
+});

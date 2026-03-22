@@ -20,7 +20,7 @@ const mockAlerts: Alert[] = [
     id: "alert-1",
     title: "SQL Injection in express",
     description: "CVE-2024-1234 - High severity SQL injection vulnerability",
-    severity: "high",
+    severity: "critical",
     package: "express@4.18.2",
     repository: "acme/api-gateway",
     detectedAt: "2h ago",
@@ -65,7 +65,7 @@ describe("SecurityAlerts", () => {
 
     await user.click(screen.getByRole("button", { name: /critical/i }));
 
-    expect(screen.getByText(/sql injection/i)).toBeInTheDocument();
+    expect(screen.getByText(/xss vulnerability in lodash/i)).toBeInTheDocument();
     expect(screen.queryByText(/outdated axios/i)).not.toBeInTheDocument();
   });
 
@@ -88,7 +88,7 @@ describe("SecurityAlerts", () => {
     const dismissBtn = within(firstAlert).getByRole("button", { name: /close/i });
     await user.click(dismissBtn);
 
-    expect(screen.queryByText(/sql injection/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/sql injection in express/i)).not.toBeInTheDocument();
     const badge = screen.getByText("2");
     expect(badge).toBeInTheDocument();
   });
@@ -100,6 +100,9 @@ describe("SecurityAlerts", () => {
     const dismissBtns = screen.getAllByRole("button", { name: /close/i });
     for (const btn of dismissBtns) {
       await user.click(btn);
+      act(() => {
+        jest.runAllTimers();
+      });
     }
 
     expect(screen.getByText(/all clear/i)).toBeInTheDocument();

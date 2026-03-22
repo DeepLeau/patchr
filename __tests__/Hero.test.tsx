@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Hero } from "@/components/sections/Hero";
 
 jest.mock("framer-motion", () => {
@@ -34,6 +35,13 @@ jest.mock("@/components/ui/UnicornBackground", () => ({
   UnicornBackground: () => <div data-testid="unicorn-background" />,
 }));
 
+const mockPush = jest.fn();
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
 describe("Hero", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -61,8 +69,22 @@ describe("Hero", () => {
 
     // Assert
     expect(screen.getByText(/patchr automatically detects outdated dependencies/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /get started free/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /get started for free/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /how it works/i })).toBeInTheDocument();
     expect(screen.getByText(/trusted by 2,400\+ developers/i)).toBeInTheDocument();
+  });
+
+  it("should navigate to dashboard when clicking the primary CTA button", async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<Hero />);
+    const ctaButton = screen.getByRole("button", { name: /get started for free/i });
+
+    // Act
+    await user.click(ctaButton);
+
+    // Assert
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    expect(mockPush).toHaveBeenCalledWith("/dashboard");
   });
 });
