@@ -65,7 +65,7 @@ describe("SecurityAlerts", () => {
 
     await user.click(screen.getByRole("button", { name: /critical/i }));
 
-    expect(screen.getByText(/sql injection/i)).toBeInTheDocument();
+    expect(screen.getByText(/xss vulnerability/i)).toBeInTheDocument();
     expect(screen.queryByText(/outdated axios/i)).not.toBeInTheDocument();
   });
 
