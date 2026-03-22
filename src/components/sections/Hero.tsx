@@ -1,9 +1,16 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { AnimatedTextGenerate } from "@/components/ui/AnimatedTextGenerate";
 import { UnicornBackground } from "@/components/ui/UnicornBackground";
 
 export function Hero() {
+  const router = useRouter();
+
+  const handleGetStarted = () => {
+    router.push("/dashboard");
+  };
+
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 bg-[#0a0a0a] overflow-hidden pt-14">
       <UnicornBackground
@@ -44,8 +51,11 @@ export function Hero() {
           for you.
         </p>
         <div className="flex items-center gap-3 mt-2">
-          <button className="h-9 px-5 rounded-md bg-accent hover:bg-accent-hi text-white text-sm font-medium transition-colors shadow-[0_0_16px_rgba(22,163,74,0.25)]">
-            Get started free
+          <button
+            onClick={handleGetStarted}
+            className="h-9 px-5 rounded-md bg-accent hover:bg-accent-hi text-white text-sm font-medium transition-colors shadow-[0_0_16px_rgba(22,163,74,0.25)]"
+          >
+            Get started for free
           </button>
           <button className="h-9 px-5 rounded-md border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] text-zinc-300 text-sm font-medium transition-colors">
             How it works →
