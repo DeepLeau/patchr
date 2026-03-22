@@ -1,6 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
 
+const mockRouter = {
+  push: jest.fn(),
+  replace: jest.fn(),
+  refresh: jest.fn(),
+  back: jest.fn(),
+  forward: jest.fn(),
+};
+
+jest.mock("next/navigation", () => ({
+  useRouter: () => mockRouter,
+  usePathname: () => "/",
+}));
+
 jest.mock("framer-motion", () => {
   const React = require("react");
   const strip = ({

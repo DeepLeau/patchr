@@ -20,7 +20,7 @@ const mockAlerts: Alert[] = [
     id: "alert-1",
     title: "SQL Injection in express",
     description: "CVE-2024-1234 - High severity SQL injection vulnerability",
-    severity: "high",
+    severity: "critical",
     package: "express@4.18.2",
     repository: "acme/api-gateway",
     detectedAt: "2h ago",
@@ -30,7 +30,7 @@ const mockAlerts: Alert[] = [
     id: "alert-2",
     title: "XSS vulnerability in lodash",
     description: "DOM-based XSS found in template rendering",
-    severity: "critical",
+    severity: "high",
     package: "lodash@4.17.20",
     repository: "acme/web-app",
     detectedAt: "1d ago",
@@ -65,7 +65,8 @@ describe("SecurityAlerts", () => {
 
     await user.click(screen.getByRole("button", { name: /critical/i }));
 
-    expect(screen.getByText(/sql injection/i)).toBeInTheDocument();
+    const list = screen.getByRole("list");
+    expect(within(list).getByText(/sql injection/i)).toBeInTheDocument();
     expect(screen.queryByText(/outdated axios/i)).not.toBeInTheDocument();
   });
 
@@ -102,7 +103,7 @@ describe("SecurityAlerts", () => {
       await user.click(btn);
     }
 
-    expect(screen.getByText(/all clear/i)).toBeInTheDocument();
+    expect(screen.getByText(/no security alerts/i)).toBeInTheDocument();
   });
 
   it("should render loading skeleton when loading prop is true", () => {

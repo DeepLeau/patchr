@@ -1,6 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import { Hero } from "@/components/sections/Hero";
 
+const mockRouter = {
+  push: jest.fn(),
+  replace: jest.fn(),
+  refresh: jest.fn(),
+  back: jest.fn(),
+  forward: jest.fn(),
+};
+
+jest.mock("next/navigation", () => ({
+  useRouter: () => mockRouter,
+  usePathname: () => "/",
+}));
+
 jest.mock("framer-motion", () => {
   const React = require("react");
   const strip = ({
@@ -40,29 +53,27 @@ describe("Hero", () => {
   });
 
   it("should render hero badge", () => {
-    // Arrange & Act
     render(<Hero />);
-
-    // Assert
     expect(screen.getByText(/now available/i)).toBeInTheDocument();
   });
 
   it("should render main headline text", () => {
-    // Arrange & Act
     render(<Hero />);
-
-    // Assert
     expect(screen.getByTestId("animated-text")).toBeInTheDocument();
   });
 
   it("should render description and CTA buttons", () => {
-    // Arrange & Act
     render(<Hero />);
-
-    // Assert
     expect(screen.getByText(/patchr automatically detects outdated dependencies/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /get started free/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /get started for free/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /how it works/i })).toBeInTheDocument();
     expect(screen.getByText(/trusted by 2,400\+ developers/i)).toBeInTheDocument();
+  });
+
+  it("should navigate to dashboard when primary CTA is clicked", () => {
+    render(<Hero />);
+    const ctaButton = screen.getByRole("button", { name: /get started for free/i });
+    ctaButton.click();
+    expect(mockRouter.push).toHaveBeenCalledWith("/dashboard");
   });
 });
