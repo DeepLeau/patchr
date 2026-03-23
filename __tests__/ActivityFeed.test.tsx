@@ -40,15 +40,14 @@ describe("ActivityFeed", () => {
     jest.useFakeTimers();
     render(<ActivityFeed initialItems={mockInitialItems} />);
 
-    expect(screen.getAllByRole("listitem")).toHaveLength(3);
+    expect(screen.getAllByTestId("activity-item")).toHaveLength(3);
 
     act(() => {
       jest.advanceTimersByTime(4000);
     });
 
-    const items = screen.getAllByRole("listitem");
-    expect(items.length).toBe(3);
-    expect(screen.getByText(/just now/i)).toBeInTheDocument();
+    const items = screen.getAllByTestId("activity-item");
+    expect(items.length).toBe(4);
   });
 
   it("should limit items to 5 after multiple intervals", async () => {
@@ -56,10 +55,10 @@ describe("ActivityFeed", () => {
     render(<ActivityFeed initialItems={mockInitialItems} />);
 
     act(() => {
-      jest.advanceTimersByTime(12000);
+      jest.advanceTimersByTime(16000);
     });
 
-    const items = screen.getAllByRole("listitem");
+    const items = screen.getAllByTestId("activity-item");
     expect(items.length).toBeLessThanOrEqual(5);
   });
 

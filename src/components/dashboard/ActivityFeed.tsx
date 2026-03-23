@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GitBranch, GitPullRequest, Wrench, AlertTriangle, Activity } from "lucide-react";
+import { Activity, GitBranch, Package, GitPullRequest, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ActivityItem } from "@/lib/data";
 
@@ -12,107 +12,96 @@ interface ActivityFeedProps {
 
 const typeConfig = {
   scan: {
+    icon: GitBranch,
     bg: "bg-blue-500/10",
     border: "border-blue-500/20",
-    icon: GitBranch,
-    color: "text-blue-400",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-400",
   },
   fix: {
-    bg: "bg-accent/10",
-    border: "border-accent/20",
-    icon: Wrench,
-    color: "text-accent-hi",
+    icon: Package,
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    iconBg: "bg-emerald-500/10",
+    iconColor: "text-emerald-400",
   },
   pr: {
+    icon: GitPullRequest,
     bg: "bg-purple-500/10",
     border: "border-purple-500/20",
-    icon: GitPullRequest,
-    color: "text-purple-400",
+    iconBg: "bg-purple-500/10",
+    iconColor: "text-purple-400",
   },
   alert: {
+    icon: AlertTriangle,
     bg: "bg-red-500/10",
     border: "border-red-500/20",
-    icon: AlertTriangle,
-    color: "text-red-400",
+    iconBg: "bg-red-500/10",
+    iconColor: "text-red-400",
   },
 };
 
-const newActivities: Omit<ActivityItem, "id">[] = [
-  {
-    type: "scan",
-    message: "New vulnerability detected in express",
-    repository: "acme/api-gateway",
-    timestamp: "Just now",
-  },
-  {
-    type: "fix",
-    message: "Patched lodash to version 4.17.21",
-    repository: "acme/web-app",
-    timestamp: "Just now",
-  },
-  {
-    type: "pr",
-    message: "PR merged: Update react-router to 6.22.0",
-    repository: "acme/dashboard",
-    timestamp: "Just now",
-  },
+const sampleMessages = [
+  { type: "scan", messages: ["Scan completed with 3 vulnerabilities detected", "Scheduled scan started"] },
+  { type: "fix", messages: ["Patched express to 4.19.1", "Updated lodash to 4.17.21"] },
+  { type: "pr", messages: ["PR #142 opened: Update react", "PR merged: Security patch"] },
+  { type: "alert", messages: ["Critical: Prototype pollution detected", "High: XSS vulnerability found"] },
 ];
+
+function generateRandomItem(existingIds: Set<string>): ActivityItem {
+  const types = ["scan", "fix", "pr", "alert"] as const;
+  const type = types[Math.floor(Math.random() * types.length)];
+  const repo = ["acme/api-service", "acme/web-app", "acme/auth-service"][Math.floor(Math.random() * 3)];
+  const messages = sampleMessages.find((s) => s.type === type)?.messages || [];
+  const message = messages[Math.floor(Math.random() * messages.length)] || "Activity update";
+  const times = ["just now", "1m ago", "2m ago", "3m ago"];
+  const timestamp = times[Math.floor(Math.random() * times.length)];
+
+  let id: string;
+  do {
+    id = `new-act-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  } while (existingIds.has(id));
+
+  return { id, type, message, repository: repo, timestamp };
+}
 
 export function ActivityFeed({ initialItems }: ActivityFeedProps) {
   const [items, setItems] = useState<ActivityItem[]>(initialItems);
-  const [idCounter, setIdCounter] = useState(initialItems.length + 1);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const randomActivity = newActivities[Math.floor(Math.random() * newActivities.length)];
-      const newItem: ActivityItem = {
-        ...randomActivity,
-        id: `new-act-${idCounter}`,
-      };
-
-      setItems((prev) => [newItem, ...prev.slice(0, 4)]);
-      setIdCounter((prev) => prev + 1);
+      setItems((prev) => {
+        const existingIds = new Set(prev.map((item) => item.id));
+        const newItem = generateRandomItem(existingIds);
+        const updated = [newItem, ...prev].slice(0, 5);
+        return updated;
+      });
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [idCounter]);
+  }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-      className="bg-[#111] border border-white/[0.10] rounded-xl p-5 h-full"
-    >
-      {/* Header */}
+    <div className="bg-[#111] border border-white/[0.10] rounded-xl p-5 h-full">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
         <h3 className="text-sm font-semibold text-zinc-100">Activity Feed</h3>
         <span className="text-[10px] text-zinc-500 ml-auto">Live</span>
       </div>
-
-      {/* Items */}
       <div className="relative h-[calc(100%-3rem)] overflow-hidden">
-        <AnimatePresence mode="popLayout">
-          {items.map((item, index) => {
-            const config = typeConfig[item.type];
-            const Icon = config.icon;
-
-            return (
-              <motion.div
-                key={item.id}
-                layout
-                initial={{ opacity: 0, x: -20, height: 0 }}
-                animate={{ opacity: 1, x: 0, height: "auto" }}
-                exit={{ opacity: 0, x: 20, height: 0 }}
-                transition={{
-                  duration: 0.3,
-                  ease: "easeOut",
-                  layout: { duration: 0.3 },
-                }}
-                className="mb-2"
-              >
-                <div
+        <div className="mb-2">
+          <AnimatePresence>
+            {items.map((item) => {
+              const config = typeConfig[item.type];
+              const Icon = config.icon;
+              return (
+                <motion.div
+                  key={item.id}
+                  data-testid="activity-item"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
                   className={cn(
                     "flex items-start gap-3 p-3 rounded-lg border overflow-hidden",
                     config.bg,
@@ -122,31 +111,25 @@ export function ActivityFeed({ initialItems }: ActivityFeedProps) {
                   <div
                     className={cn(
                       "w-7 h-7 rounded-md flex items-center justify-center shrink-0",
-                      config.bg
+                      config.iconBg
                     )}
                   >
-                    <Icon size={13} className={config.color} strokeWidth={1.5} />
+                    <Icon className={cn("w-3.5 h-3.5", config.iconColor)} />
                   </div>
-
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-zinc-300 mb-0.5 leading-relaxed">
-                      {item.message}
-                    </p>
-                    <div className="flex items-center gap-2 text-[10px] text-zinc-500">
-                      <span>{item.repository}</span>
+                    <p className="text-xs text-zinc-200 leading-snug">{item.message}</p>
+                    <div className="flex items-center gap-2 mt-1.5 text-[10px] text-zinc-500">
+                      <span className="font-mono">{item.repository}</span>
                       <span>·</span>
                       <span>{item.timestamp}</span>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-
-        {/* Fade gradient at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#111] to-transparent pointer-events-none" />
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

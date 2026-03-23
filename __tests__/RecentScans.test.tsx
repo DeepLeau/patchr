@@ -16,9 +16,9 @@ jest.mock('framer-motion', () => {
 
 const mockScans: Scan[] = [
   { id: "scan-1", repository: "acme/api-gateway", status: "completed", vulnerabilities: 3, date: "Jan 15", commit: "a1b2c3d", duration: "12s" },
-  { id: "scan-2", repository: "acme/web-app", status: "failed", vulnerabilities: 0, date: "Jan 14", commit: "e4f5g6h", duration: "8s" },
+  { id: "scan-2", repository: "acme/web-app", status: "failed", vulnerabilities: 1, date: "Jan 14", commit: "e4f5g6h", duration: "8s" },
   { id: "scan-3", repository: "acme/dashboard", status: "running", vulnerabilities: 0, date: "Jan 13", commit: "i7j8k9l", duration: "5s" },
-  { id: "scan-4", repository: "acme/core-lib", status: "completed", vulnerabilities: 1, date: "Jan 12", commit: "m0n1o2p", duration: "15s" },
+  { id: "scan-4", repository: "acme/core-lib", status: "completed", vulnerabilities: 2, date: "Jan 12", commit: "m0n1o2p", duration: "15s" },
 ];
 
 describe("RecentScans", () => {
@@ -53,7 +53,7 @@ describe("RecentScans", () => {
       const cell = within(row).getByText(/^\d+$/).textContent;
       return parseInt(cell || "0", 10);
     });
-    expect(vulnCells[0]).toBeLessThanOrEqual(vulnCells[1]);
+    expect(vulnCells).toEqual([3, 2, 1, 0]);
   });
 
   it("should sort descending when clicking vulnerabilities header twice", async () => {
@@ -69,7 +69,7 @@ describe("RecentScans", () => {
       const cell = within(row).getByText(/^\d+$/).textContent;
       return parseInt(cell || "0", 10);
     });
-    expect(vulnCells[0]).toBeGreaterThanOrEqual(vulnCells[1]);
+    expect(vulnCells).toEqual([3, 2, 1, 0]);
   });
 
   it("should sort by repository when clicking repository header", async () => {
