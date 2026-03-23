@@ -1,5 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { Hero } from "@/components/sections/Hero";
+import * as nextNavigation from "next/navigation";
+
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+  }),
+}));
 
 jest.mock("framer-motion", () => {
   const React = require("react");
@@ -61,8 +68,32 @@ describe("Hero", () => {
 
     // Assert
     expect(screen.getByText(/patchr automatically detects outdated dependencies/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /get started free/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /get started for free/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /how it works/i })).toBeInTheDocument();
     expect(screen.getByText(/trusted by 2,400\+ developers/i)).toBeInTheDocument();
+  });
+
+  it("should navigate to dashboard when clicking primary CTA", () => {
+    // Arrange
+    const pushMock = jest.fn();
+    (nextNavigation.useRouter as jest.Mock).mockReturnValue({
+      push: pushMock,
+      replace: jest.fn(),
+      refresh: jest.fn(),
+      prefetch: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+      canGoBack: false,
+      canGoForward: false,
+    });
+
+    render(<Hero />);
+
+    // Act
+    const ctaButton = screen.getByRole("button", { name: /get started for free/i });
+    ctaButton.click();
+
+    // Assert
+    expect(pushMock).toHaveBeenCalledWith("/dashboard");
   });
 });
