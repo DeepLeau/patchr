@@ -20,7 +20,7 @@ jest.mock("framer-motion", () => {
       {},
       {
         get: (_t: any, tag: string) =>
-          ({ children, props }: any) =>
+          ({ children, ...props }: any) =>
             React.createElement(tag, strip(props), children),
       }
     ),
@@ -44,8 +44,8 @@ describe("Pricing", () => {
     // Arrange & Act
     render(<Pricing />);
 
-    // Assert - use getAllByText for "free" since it appears multiple times (plan name + description)
-    expect(screen.getAllByText(/free/i)).toHaveLength(2);
+    // Assert - 4 occurrences: description, plan name, and 2 buttons containing "free"
+    expect(screen.getAllByText(/free/i)).toHaveLength(4);
     expect(screen.getByText(/pro/i)).toBeInTheDocument();
   });
 

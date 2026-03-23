@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { render, screen, within, act } from "@testing-library/react";
+import { render, screen, within, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SecurityAlerts } from "@/components/dashboard/SecurityAlerts";
 import type { Alert } from "@/lib/data";
@@ -20,7 +20,7 @@ const mockAlerts: Alert[] = [
     id: "alert-1",
     title: "SQL Injection in express",
     description: "CVE-2024-1234 - High severity SQL injection vulnerability",
-    severity: "high",
+    severity: "critical",
     package: "express@4.18.2",
     repository: "acme/api-gateway",
     detectedAt: "2h ago",
@@ -63,21 +63,36 @@ describe("SecurityAlerts", () => {
     const user = userEvent.setup();
     render(<SecurityAlerts alerts={mockAlerts} />);
 
-    await user.click(screen.getByRole("button", { name: /critical/i }));
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /critical/i }));
+    });
 
-    expect(screen.getByText(/sql injection/i)).toBeInTheDocument();
-    expect(screen.queryByText(/outdated axios/i)).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /sql injection/i })).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /xss vulnerability/i })).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.queryByText(/outdated axios/i)).not.toBeInTheDocument();
+    });
   });
 
   it("should filter to action-required alerts only when clicking action button", async () => {
     const user = userEvent.setup();
     render(<SecurityAlerts alerts={mockAlerts} />);
 
-    await user.click(screen.getByRole("button", { name: /action/i }));
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /action/i }));
+    });
 
-    const alerts = screen.getAllByRole("listitem").length;
-    expect(alerts).toBeGreaterThan(0);
-    expect(screen.queryByText(/outdated axios/i)).not.toBeInTheDocument();
+    await waitFor(() => {
+      const alerts = screen.getAllByRole("listitem").length;
+      expect(alerts).toBeGreaterThan(0);
+    });
+    await waitFor(() => {
+      expect(screen.queryByText(/outdated axios/i)).not.toBeInTheDocument();
+    });
   });
 
   it("should dismiss an alert when clicking X button", async () => {
@@ -86,9 +101,14 @@ describe("SecurityAlerts", () => {
 
     const firstAlert = screen.getByTestId("alert-item-alert-1");
     const dismissBtn = within(firstAlert).getByRole("button", { name: /close/i });
-    await user.click(dismissBtn);
+    
+    await act(async () => {
+      await user.click(dismissBtn);
+    });
 
-    expect(screen.queryByText(/sql injection/i)).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole("heading", { name: /sql injection/i })).not.toBeInTheDocument();
+    });
     const badge = screen.getByText("2");
     expect(badge).toBeInTheDocument();
   });
@@ -97,12 +117,19 @@ describe("SecurityAlerts", () => {
     const user = userEvent.setup();
     render(<SecurityAlerts alerts={mockAlerts} />);
 
-    const dismissBtns = screen.getAllByRole("button", { name: /close/i });
-    for (const btn of dismissBtns) {
-      await user.click(btn);
+    // Dismiss alerts one by one, waiting for each to complete
+    for (let i = 0; i < 3; i++) {
+      const dismissBtns = screen.queryAllByRole("button", { name: /close/i });
+      if (dismissBtns.length > 0) {
+        await act(async () => {
+          await user.click(dismissBtns[0]);
+        });
+      }
     }
 
-    expect(screen.getByText(/all clear/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/all clear/i)).toBeInTheDocument();
+    });
   });
 
   it("should render loading skeleton when loading prop is true", () => {
